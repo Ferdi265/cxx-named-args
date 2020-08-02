@@ -7,7 +7,7 @@ using namespace std::literals;
 // define arguments
 struct name_t : named_args::req_arg_t<std::string> {};
 struct age_t : named_args::opt_arg_t<int> {};
-struct bufsiz_t : named_args::def_arg_t<int, 4096> {};
+struct bufsiz_t : named_args::def_arg_t<size_t, 4096> {};
 
 // create named argument markers
 constexpr named_args::arg_t<name_t> name;
@@ -15,7 +15,7 @@ constexpr named_args::arg_t<age_t> age;
 constexpr named_args::arg_t<bufsiz_t> bufsiz;
 
 // named argument wrapper
-void test_impl(std::string name, std::optional<int> age, int bufsiz);
+void test_impl(std::string name, std::optional<int> age, size_t bufsiz);
 template <typename... Args>
 void test(Args... a) {
     named_args::storage<name_t, age_t, bufsiz_t> args(a...);
@@ -25,7 +25,7 @@ void test(Args... a) {
 }
 
 // implementation
-void test_impl(std::string name, std::optional<int> age, int bufsiz) {
+void test_impl(std::string name, std::optional<int> age, size_t bufsiz) {
     std::cout << "test:\n";
 
     std::cout << "- name is " << name << "\n";
