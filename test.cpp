@@ -14,16 +14,6 @@ constexpr named_args::arg_t<name_t> name;
 constexpr named_args::arg_t<age_t> age;
 constexpr named_args::arg_t<bufsiz_t> bufsiz;
 
-// named argument wrapper
-void test_impl(std::string name, std::optional<int> age, size_t bufsiz);
-template <typename... Args>
-void test(Args&&... a) {
-    named_args::storage<name_t, age_t, bufsiz_t> args(std::forward<Args>(a)...);
-
-    using named_args::get_arg;
-    test_impl(std::move(get_arg<name_t>(args)), get_arg<age_t>(args), get_arg<bufsiz_t>(args));
-}
-
 // implementation
 void test_impl(std::string name, std::optional<int> age, size_t bufsiz) {
     std::cout << "test:\n";
@@ -38,6 +28,8 @@ void test_impl(std::string name, std::optional<int> age, size_t bufsiz) {
 
     std::cout << "- bufsiz is " << bufsiz << "\n";
 }
+
+constexpr named_args::function<test_impl, name_t, age_t, bufsiz_t> test{};
 
 // tests
 void foo(char * s, int a, int b) {
