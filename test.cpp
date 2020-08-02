@@ -42,6 +42,7 @@ void test_impl(std::string name, std::optional<int> age, int bufsiz) {
 // test
 int main() {
     test(name = "foo", age = 42, bufsiz = 8192);
+    test(bufsiz = 8192, name = "foo", age = 42);
     test(name = "bar", age = 1337);
     test(name = "baz"s);
 }
