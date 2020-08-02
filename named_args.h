@@ -300,9 +300,9 @@ namespace named_args {
             using rest_kinds = detail::arg_kinds_t<std::remove_const_t<Rest>>;
 
             if constexpr (detail::tuple_contains_v<arg_kinds, K>) {
-                return std::move(std::get<detail::tuple_index_v<arg_kinds, K>>(args));
+                return std::get<detail::tuple_index_v<arg_kinds, K>>(args);
             } else {
-                return std::move(std::get<detail::tuple_index_v<rest_kinds, K>>(rest));
+                return std::get<detail::tuple_index_v<rest_kinds, K>>(rest);
             }
         }
 
@@ -313,7 +313,8 @@ namespace named_args {
             using rest_args = detail::missing_non_req_args_t<std::tuple<Ks...>, std::tuple<std::remove_reference_t<Args>...>>;
 
             std::tuple<Args&&...> args = std::forward_as_tuple(std::forward<Args>(a)...);
-            return impl(std::move(select<Ks>(args, detail::kind_values_v<rest_args>).value)...);
+            detail::kind_types_t<rest_args> rest = detail::kind_values_v<rest_args>;
+            return impl(std::forward<decltype(select<Ks>(args, rest).value)>(select<Ks>(args, rest).value)...);
         }
     };
 }
