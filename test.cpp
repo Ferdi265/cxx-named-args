@@ -39,7 +39,11 @@ void test_impl(std::string name, std::optional<int> age, size_t bufsiz) {
     std::cout << "- bufsiz is " << bufsiz << "\n";
 }
 
-// test
+// tests
+void foo(char * s, int a, int b) {
+    test(name = s, age = a, bufsiz = b);
+}
+
 int main() {
     test(name = "foo", age = 42, bufsiz = 8192);
     test(bufsiz = 8192, name = "foo", age = 42);
