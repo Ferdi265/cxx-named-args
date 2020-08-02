@@ -62,3 +62,6 @@ void test_impl(std::string name, std::optional<int> age) {
 
 constexpr named_args::function<test_impl, name_t, age_t> test{};
 ```
+
+The file `test.cpp` contains a second slightly larger example that demonstrates
+defaulted arguments.
