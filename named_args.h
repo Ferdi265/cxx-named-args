@@ -223,7 +223,7 @@ namespace named_args {
     template <typename... Ns>
     struct storage {
     private:
-        std::tuple<Ns...> __storage;
+        std::tuple<Ns...> elems;
 
         template <typename N, typename... Ms>
         friend constexpr typename N::type get_arg(storage<Ms...>& args);
@@ -231,7 +231,7 @@ namespace named_args {
     public:
         template <typename... Ms>
         constexpr storage(Ms&&... ms)
-            : __storage(detail::tuple_partial_construct<std::tuple<Ns...>, std::tuple<Ms...>>({ms...}))
+            : elems(detail::tuple_partial_construct<std::tuple<Ns...>, std::tuple<Ms...>>({ms...}))
         {
             [[maybe_unused]] detail::check_args<std::tuple<Ns...>, std::tuple<std::remove_reference_t<Ms>...>> check;
         }
@@ -240,6 +240,6 @@ namespace named_args {
     // named argument accessor function
     template <typename N, typename... Ns>
     constexpr typename N::type get_arg(storage<Ns...>& args) {
-        return std::get<N>(args.__storage).value;
+        return std::get<N>(args.elems).value;
     }
 }
