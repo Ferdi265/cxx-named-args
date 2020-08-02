@@ -17,11 +17,11 @@ constexpr named_args::arg_t<bufsiz_t> bufsiz;
 // named argument wrapper
 void test_impl(std::string name, std::optional<int> age, size_t bufsiz);
 template <typename... Args>
-void test(Args... a) {
-    named_args::storage<name_t, age_t, bufsiz_t> args(a...);
+void test(Args&&... a) {
+    named_args::storage<name_t, age_t, bufsiz_t> args(std::forward<Args>(a)...);
 
     using named_args::get_arg;
-    test_impl(get_arg<name_t>(args), get_arg<age_t>(args), get_arg<bufsiz_t>(args));
+    test_impl(std::move(get_arg<name_t>(args)), get_arg<age_t>(args), get_arg<bufsiz_t>(args));
 }
 
 // implementation
