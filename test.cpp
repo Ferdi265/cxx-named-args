@@ -6,10 +6,10 @@
 using namespace std::literals;
 
 // define argument types
-struct name_t : public named_args::req_arg {};
-struct age_t : public named_args::opt_arg  {};
-struct bufsiz_t : public named_args::def_arg<size_t, 4096> {};
-struct nice_t : public named_args::opt_arg {};
+struct name_t : named_args::req_arg {};
+struct age_t : named_args::opt_arg  {};
+struct bufsiz_t : named_args::def_arg<size_t, 4096> {};
+struct nice_t : named_args::opt_arg {};
 
 // create named argument markers
 constexpr named_args::marker<name_t> name;
