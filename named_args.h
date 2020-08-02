@@ -225,8 +225,8 @@ namespace named_args {
     private:
         std::tuple<Ns...> __storage;
 
-        template <typename N, typename T>
-        friend constexpr typename N::type get_arg(T& args);
+        template <typename N, typename... Ms>
+        friend constexpr typename N::type get_arg(storage<Ms...>& args);
 
     public:
         template <typename... Ms>
@@ -238,8 +238,8 @@ namespace named_args {
     };
 
     // named argument accessor function
-    template <typename N, typename T>
-    constexpr typename N::type get_arg(T& args) {
+    template <typename N, typename... Ns>
+    constexpr typename N::type get_arg(storage<Ns...>& args) {
         return std::get<N>(args.__storage).value;
     }
 }
