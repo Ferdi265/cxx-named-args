@@ -1,35 +1,34 @@
 #include <iostream>
+#include <string>
 #include "named_args.h"
 
+using namespace std::literals;
+
 // define arguments
-struct foo_t : named_args::req_arg_t<bool> {};
+struct name_t : named_args::req_arg_t<std::string> {};
 struct age_t : named_args::opt_arg_t<int> {};
 struct bufsiz_t : named_args::def_arg_t<int, 4096> {};
 
 // create named argument markers
-constexpr named_args::arg_t<foo_t> foo;
+constexpr named_args::arg_t<name_t> name;
 constexpr named_args::arg_t<age_t> age;
 constexpr named_args::arg_t<bufsiz_t> bufsiz;
 
 // named argument wrapper
-void test_impl(bool foo, std::optional<int> age, int bufsiz);
+void test_impl(std::string name, std::optional<int> age, int bufsiz);
 template <typename... Args>
 void test(Args... a) {
-    named_args::storage<foo_t, age_t, bufsiz_t> args(a...);
+    named_args::storage<name_t, age_t, bufsiz_t> args(a...);
 
     using named_args::get_arg;
-    test_impl(get_arg<foo_t>(args), get_arg<age_t>(args), get_arg<bufsiz_t>(args));
+    test_impl(get_arg<name_t>(args), get_arg<age_t>(args), get_arg<bufsiz_t>(args));
 }
 
 // implementation
-void test_impl(bool foo, std::optional<int> age, int bufsiz) {
+void test_impl(std::string name, std::optional<int> age, int bufsiz) {
     std::cout << "test:\n";
 
-    if (foo) {
-        std::cout << "- foo enabled\n";
-    } else {
-        std::cout << "- foo disabled\n";
-    }
+    std::cout << "- name is " << name << "\n";
 
     if (age) {
         std::cout << "- age is " << *age << "\n";
@@ -42,7 +41,7 @@ void test_impl(bool foo, std::optional<int> age, int bufsiz) {
 
 // test
 int main() {
-    test(foo = true, age = 42, bufsiz = 8192);
-    test(foo = false, age = 1337);
-    test(foo = true);
+    test(name = "foo", age = 42, bufsiz = 8192);
+    test(name = "bar", age = 1337);
+    test(name = "baz"s);
 }
