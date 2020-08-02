@@ -35,7 +35,7 @@ namespace named_args {
 
         template <typename T>
         N operator=(T&& t) const {
-            return {{std::forward<T>(t)}};
+            return {{type(std::forward<T>(t))}};
         }
     };
 
