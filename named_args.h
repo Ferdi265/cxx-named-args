@@ -131,6 +131,29 @@ namespace named_args {
             constexpr static bool empty = std::is_same_v<type, std::tuple<>>;
         };
 
+        // check for missing non-required arguments
+        template <typename N, typename M>
+        struct missing_non_req_args;
+
+        template <typename N, typename M>
+        using missing_non_req_args_t = typename missing_non_req_args<N, M>::type;
+
+        template <typename M>
+        struct missing_non_req_args<std::tuple<>, M> {
+            using type = std::tuple<>;
+            constexpr static bool empty = true;
+        };
+
+        template <typename M, typename N, typename... Ns>
+        struct missing_non_req_args<std::tuple<N, Ns...>, M> {
+            using type = std::conditional_t<
+                N::required || tuple_contains_v<M, N>,
+                missing_non_req_args_t<std::tuple<Ns...>, M>,
+                tuple_prepend_t<missing_non_req_args_t<std::tuple<Ns...>, M>, N>
+            >;
+            constexpr static bool empty = std::is_same_v<type, std::tuple<>>;
+        };
+
         // check for duplicate arguments
         template <typename N, typename M>
         struct duplicate_args;
@@ -204,12 +227,12 @@ namespace named_args {
     private:
         using R = decltype(impl(std::declval<typename Ns::type>()...));
 
-        template <typename N, typename... Args>
-        static constexpr N construct_or_default(std::tuple<Args&&...>& args) {
+        template <typename N, typename Rest, typename... Args>
+        static constexpr N&& construct_or_default(std::tuple<Args&&...>& args, Rest& rest) {
             if constexpr (detail::tuple_contains_v<std::tuple<Args...>, N>) {
                 return std::move(std::get<N&&>(args));
             } else {
-                return {};
+                return std::move(std::get<N>(rest));
             }
         }
 
@@ -219,7 +242,8 @@ namespace named_args {
             [[maybe_unused]] detail::check_args<std::tuple<Ns...>, std::tuple<std::remove_reference_t<Args>...>> check;
 
             std::tuple<Args&&...> args = std::forward_as_tuple(std::forward<Args>(a)...);
-            return impl(construct_or_default<Ns>(args).value...);
+            detail::missing_non_req_args_t<std::tuple<Ns...>, std::tuple<std::remove_reference_t<Args>...>> rest;
+            return impl(construct_or_default<Ns>(args, rest).value...);
         }
     };
 }
