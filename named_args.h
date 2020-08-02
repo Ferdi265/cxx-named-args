@@ -313,7 +313,7 @@ namespace named_args {
             using rest_args = detail::missing_non_req_args_t<std::tuple<Ks...>, std::tuple<std::remove_reference_t<Args>...>>;
 
             std::tuple<Args&&...> args = std::forward_as_tuple(std::forward<Args>(a)...);
-            return impl(select<Ks>(args, detail::kind_values_v<rest_args>).value...);
+            return impl(std::move(select<Ks>(args, detail::kind_values_v<rest_args>).value)...);
         }
     };
 }
