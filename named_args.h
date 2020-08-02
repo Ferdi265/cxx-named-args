@@ -230,10 +230,10 @@ namespace named_args {
 
     public:
         template <typename... Ms>
-        constexpr storage(Ms... ms)
+        constexpr storage(Ms&&... ms)
             : __storage(detail::tuple_partial_construct<std::tuple<Ns...>, std::tuple<Ms...>>({ms...}))
         {
-            [[maybe_unused]] detail::check_args<std::tuple<Ns...>, std::tuple<Ms...>> check;
+            [[maybe_unused]] detail::check_args<std::tuple<Ns...>, std::tuple<std::remove_reference_t<Ms>...>> check;
         }
     };
 
