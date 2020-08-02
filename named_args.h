@@ -228,7 +228,7 @@ namespace named_args {
         using R = decltype(impl(std::declval<typename Ns::type>()...));
 
         template <typename N, typename Rest, typename... Args>
-        static constexpr N&& construct_or_default(std::tuple<Args&&...>& args, Rest& rest) {
+        static constexpr N&& select(std::tuple<Args&&...>& args, Rest& rest) {
             if constexpr (detail::tuple_contains_v<std::tuple<Args...>, N>) {
                 return std::move(std::get<N&&>(args));
             } else {
@@ -243,7 +243,7 @@ namespace named_args {
 
             std::tuple<Args&&...> args = std::forward_as_tuple(std::forward<Args>(a)...);
             detail::missing_non_req_args_t<std::tuple<Ns...>, std::tuple<std::remove_reference_t<Args>...>> rest;
-            return impl(construct_or_default<Ns>(args, rest).value...);
+            return impl(select<Ns>(args, rest).value...);
         }
     };
 }
