@@ -33,8 +33,9 @@ namespace named_args {
     struct arg_t {
         using type = typename N::type;
 
-        N operator=(type t) const {
-            return {{t}};
+        template <typename T>
+        N operator=(T&& t) const {
+            return {{std::forward<T>(t)}};
         }
     };
 
@@ -111,9 +112,9 @@ namespace named_args {
         template <typename T, typename U, size_t I,
             typename V = std::remove_reference_t<decltype(std::get<I>(std::declval<T>()))>
         >
-        constexpr V tuple_partial_construct_single(U u) {
-            if constexpr (tuple_contains_v<U, V>) {
-                return std::get<V>(u);
+        constexpr V tuple_partial_construct_single(U& u) {
+            if constexpr (tuple_contains_v<U, V&&>) {
+                return std::move(std::get<V&&>(u));
             } else {
                 return {};
             }
@@ -125,7 +126,7 @@ namespace named_args {
 
         template <typename T, typename U>
         constexpr T tuple_partial_construct(U u) {
-            return tuple_partial_construct_sequence<T>(u, std::make_index_sequence<std::tuple_size_v<T>>());
+            return tuple_partial_construct_sequence<T>(std::move(u), std::make_index_sequence<std::tuple_size_v<T>>());
         }
 
         // check for missing required arguments
@@ -226,20 +227,20 @@ namespace named_args {
         std::tuple<Ns...> elems;
 
         template <typename N, typename... Ms>
-        friend constexpr typename N::type get_arg(storage<Ms...>& args);
+        friend constexpr typename N::type& get_arg(storage<Ms...>& args);
 
     public:
         template <typename... Ms>
-        constexpr storage(Ms... ms)
-            : elems(detail::tuple_partial_construct<std::tuple<Ns...>, std::tuple<Ms...>>({ms...}))
+        constexpr storage(Ms&&... ms)
+            : elems(detail::tuple_partial_construct<std::tuple<Ns...>, std::tuple<Ms&&...>>(std::forward_as_tuple(std::forward<Ms>(ms)...)))
         {
-            [[maybe_unused]] detail::check_args<std::tuple<Ns...>, std::tuple<Ms...>> check;
+            [[maybe_unused]] detail::check_args<std::tuple<Ns...>, std::tuple<std::remove_reference_t<Ms>...>> check;
         }
     };
 
     // named argument accessor function
     template <typename N, typename... Ns>
-    constexpr typename N::type get_arg(storage<Ns...>& args) {
+    constexpr typename N::type& get_arg(storage<Ns...>& args) {
         return std::get<N>(args.elems).value;
     }
 }
