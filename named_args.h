@@ -245,9 +245,6 @@ namespace named_args {
         struct impl_return_check<impl, K, A, true> {
             using type = impl_return_t<impl, K, A>;
         };
-
-        template <auto impl, typename K, typename A>
-        struct impl_return_check<impl, K, A, false> {};
     }
 
     // named argument function type
