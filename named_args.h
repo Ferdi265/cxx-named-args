@@ -20,7 +20,7 @@ namespace named_args {
     template <typename K>
     struct marker {
         template <typename T>
-        arg<decltype(std::forward<T>(std::declval<T&&>())), K> operator=(T&& t) const {
+        arg<T&&, K> operator=(T&& t) const {
             return {std::forward<T>(t)};
         }
     };
