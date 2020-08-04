@@ -44,8 +44,6 @@ namespace named_args {
         using tuple_traits::type_t;
         using tuple_traits::value_t;
 
-        // template meta-programs specific to named_args
-
         // get the kind of an argument
         template <typename A>
         struct arg_kind {
@@ -172,8 +170,7 @@ namespace named_args {
 
         template <typename K, typename A, typename R>
         struct select_single<K, A, R, true> {
-            using arg_kinds = arg_kinds_t<A>;
-            constexpr static size_t arg_index = tuple_traits::index_v<arg_kinds, K>;
+            constexpr static size_t arg_index = tuple_traits::index_v<arg_kinds_t<A>, K>;
 
             using type = tuple_traits::nth_t<A, arg_index>;
 
