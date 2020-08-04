@@ -21,7 +21,7 @@ namespace named_args {
     struct marker {
         template <typename T>
         arg<T&&, K> operator=(T&& t) const {
-            return {std::forward<T>(t)};
+            return { std::forward<T>(t) };
         }
     };
 
@@ -32,15 +32,13 @@ namespace named_args {
 
     struct opt_arg {
         constexpr static bool required = false;
-        using type = std::nullopt_t;
-        constexpr static type value = std::nullopt;
+        constexpr static std::nullopt_t value = std::nullopt;
     };
 
     template <typename T, T _default>
     struct def_arg {
         constexpr static bool required = false;
-        using type = T;
-        constexpr static type value = _default;
+        constexpr static T value = _default;
     };
 
     namespace detail {
