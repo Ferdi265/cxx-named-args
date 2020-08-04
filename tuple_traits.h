@@ -100,6 +100,23 @@ namespace tuple_traits {
         constexpr static size_t value = 1 + index_v<tuple<Ts...>, U>;
     };
 
+    // get the Nth type of a tuple T
+    template <typename T, size_t N>
+    struct nth;
+
+    template <typename T, size_t N>
+    using nth_t = type_t<nth<T, N>>;
+
+    template <typename T, typename... Ts>
+    struct nth<tuple<T, Ts...>, 0> {
+        using type = T;
+    };
+
+    template <size_t N, typename T, typename... Ts>
+    struct nth<tuple<T, Ts...>, N> {
+        using type = nth_t<tuple<Ts...>, N - 1>;
+    };
+
     // map a type mapper template M<U> over a tuple T
     template <typename T, template <typename U> class M>
     struct map_type;
@@ -140,6 +157,11 @@ namespace tuple_traits {
         constexpr static value_t<T> value = T::value;
     };
 
+    template <typename T>
+    struct value_type_of {
+        using type = value_t<T>;
+    };
+
     // get the types of a tuple T of type wrappers
     template <typename T>
     struct types {
@@ -157,4 +179,13 @@ namespace tuple_traits {
 
     template <typename T>
     constexpr value_t<values<T>> values_v = values<T>::value;
+
+    // get the type of the values of a tuple T of value wrappers
+    template <typename T>
+    struct value_types {
+        using type = map_type_t<T, value_type_of>;
+    };
+
+    template <typename T>
+    using value_types_t = type_t<value_types<T>>;
 }
