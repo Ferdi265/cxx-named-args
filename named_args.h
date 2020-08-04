@@ -258,6 +258,7 @@ namespace named_args {
 
     public:
         template <typename... Args>
+        [[gnu::always_inline]]
         constexpr detail::impl_return_check_t<impl, kinds_t, std::tuple<Args...>> operator()(Args&&... a) const {
             using args_t = std::tuple<Args...>;
             using rest_kinds_t = detail::missing_non_req_args_t<kinds_t, args_t>;
