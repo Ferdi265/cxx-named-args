@@ -11,9 +11,8 @@ namespace named_args {
     // named argument value type
     template <typename T, typename K>
     struct arg {
-        using type = T;
         using kind = K;
-        type value;
+        T value;
     };
 
     // named argument marker type
