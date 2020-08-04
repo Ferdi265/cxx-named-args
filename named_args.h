@@ -33,7 +33,7 @@ namespace named_args {
         constexpr static std::nullopt_t value = std::nullopt;
     };
 
-    template <typename T, T _default>
+    template <typename T, T _default = T()>
     struct def_arg {
         constexpr static bool required = false;
         constexpr static T value = _default;
