@@ -4,7 +4,6 @@
 #include <type_traits>
 #include <tuple>
 #include <utility>
-#include <optional>
 #include "tuple_traits.h"
 
 namespace named_args {
@@ -26,11 +25,6 @@ namespace named_args {
     // named argument kinds
     struct req_arg {
         constexpr static bool required = true;
-    };
-
-    struct opt_arg {
-        constexpr static bool required = false;
-        constexpr static std::nullopt_t value = std::nullopt;
     };
 
     template <typename T, T _default = T()>
@@ -87,7 +81,7 @@ namespace named_args {
                 missing_req_args_t<tuple<Ks...>, A>,
                 tuple_traits::prepend_t<missing_req_args_t<tuple<Ks...>, A>, K>
             >;
-            constexpr static bool empty = std::is_same_v<type, tuple<>>;
+            constexpr static bool empty = std::is_same<type, tuple<>>::value;
         };
 
         // check for missing non-required arguments
@@ -110,7 +104,7 @@ namespace named_args {
                 missing_non_req_args_t<tuple<Ks...>, A>,
                 tuple_traits::prepend_t<missing_non_req_args_t<tuple<Ks...>, A>, K>
             >;
-            constexpr static bool empty = std::is_same_v<type, tuple<>>;
+            constexpr static bool empty = std::is_same<type, tuple<>>::value;
         };
 
         // check for duplicate arguments
@@ -133,7 +127,7 @@ namespace named_args {
                 duplicate_args_t<tuple<Ks...>, A>,
                 tuple_traits::prepend_t<duplicate_args_t<tuple<Ks...>, A>, K>
             >;
-            constexpr static bool empty = std::is_same_v<type, tuple<>>;
+            constexpr static bool empty = std::is_same<type, tuple<>>::value;
         };
 
         // check for invalid arguments
@@ -156,7 +150,7 @@ namespace named_args {
                 invalid_args_t<K, tuple<As...>>,
                 tuple_traits::prepend_t<invalid_args_t<K, tuple<As...>>, A>
             >;
-            constexpr static bool empty = std::is_same_v<type, tuple<>>;
+            constexpr static bool empty = std::is_same<type, tuple<>>::value;
         };
 
         // get the value of the arg with kind K from args A or rest R
@@ -193,14 +187,14 @@ namespace named_args {
         };
 
         // get the type the named argument function implementation returns
-        template <auto impl, typename K, typename A>
+        template <typename I, I impl, typename K, typename A>
         struct impl_return;
 
-        template <auto impl, typename K, typename A>
-        using impl_return_t = type_t<impl_return<impl, K, A>>;
+        template <typename I, I impl, typename K, typename A>
+        using impl_return_t = type_t<impl_return<I, impl, K, A>>;
 
-        template <auto impl, typename A, typename... Ks>
-        struct impl_return<impl, tuple<Ks...>, A> {
+        template <typename I, I impl, typename A, typename... Ks>
+        struct impl_return<I, impl, tuple<Ks...>, A> {
             using R = missing_non_req_args_t<tuple<Ks...>, A>;
 
             using type = decltype(impl(std::declval<value_t<select_single_t<Ks, A, R>>&&>()...));
@@ -228,20 +222,20 @@ namespace named_args {
         };
 
         // check args and then call impl_return
-        template <auto impl, typename K, typename A, bool = check_args<K, A>::valid>
+        template <typename I, I impl, typename K, typename A, bool = check_args<K, A>::valid>
         struct impl_return_check;
 
-        template <auto impl, typename K, typename A>
-        using impl_return_check_t = type_t<impl_return_check<impl, K, A>>;
+        template <typename I, I impl, typename K, typename A>
+        using impl_return_check_t = type_t<impl_return_check<I, impl, K, A>>;
 
-        template <auto impl, typename K, typename A>
-        struct impl_return_check<impl, K, A, true> {
-            using type = impl_return_t<impl, K, A>;
+        template <typename I, I impl, typename K, typename A>
+        struct impl_return_check<I, impl, K, A, true> {
+            using type = impl_return_t<I, impl, K, A>;
         };
     }
 
     // named argument function type
-    template <auto impl, typename... Ks>
+    template <typename I, I impl, typename... Ks>
     struct function {
     private:
         using kinds_t = std::tuple<Ks...>;
@@ -249,7 +243,7 @@ namespace named_args {
     public:
         template <typename... Args>
         [[gnu::always_inline]]
-        constexpr detail::impl_return_check_t<impl, kinds_t, std::tuple<Args...>> operator()(Args&&... a) const {
+        constexpr detail::impl_return_check_t<I, impl, kinds_t, std::tuple<Args...>> operator()(Args&&... a) const {
             using args_t = std::tuple<Args...>;
             using rest_kinds_t = detail::missing_non_req_args_t<kinds_t, args_t>;
             using rest_values_t = tuple_traits::value_types_t<rest_kinds_t>;

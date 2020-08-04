@@ -1,6 +1,6 @@
 # `named-args`
 
-A proof of concept implementation of named function arguments for C++17.
+A proof of concept implementation of named function arguments for C++14.
 
 ## Features
 
@@ -24,10 +24,10 @@ A proof of concept implementation of named function arguments for C++17.
 Most of the code in this library could also be used with lower C++ standard
 versions, under the following conditions:
 
-- for C++14 support, `opt_arg` must be removed (or changed to use a
-  C++14-compatible implementation of `std::optional`)
 - for C++11 support, remove `constexpr` from functions and inline
   all variable templates
+
+The original version of this library was written for C++17.
 
 ## How to use
 
@@ -44,34 +44,32 @@ Here, `name` and `age` are marker objects of type `named_args::marker<Arg>`,
 which returned a named argument when assigned to. `test` is a named function
 object of type `named_args::function<Implementation, Args...>`.
 
-The `Arg` argument types are structures that inherit from `named_args::req_arg`,
-`named_args::opt_arg`, or `named_args::def_arg<Type, Value>` and represent
-required, optional, and defaulted arguments respectively.
+The `Arg` argument types are structures that inherit from `named_args::req_arg`
+or `named_args::def_arg<Type, Value>` and represent required and defaulted
+arguments respectively.
 
 This would be a possible implementation of the above function:
 
 ```cpp
 #include <iostream>
 #include <string>
-#include <optional>
 #include "named_args.h"
 
 struct name_t : named_args::req_arg {};
-struct age_t : named_args::opt_arg {};
+struct age_t : named_args::def_arg<int, -1> {};
 
 constexpr named_args::marker<name_t> name;
 constexpr named_args::marker<age_t> age;
 
-void test_impl(std::string name, std::optional<int> age) {
-    if (age) {
-        std::cout << name << " is " << *age << " years old.\n";
+void test_impl(std::string name, int age) {
+    if (age != -1) {
+        std::cout << name << " is " << age << " years old.\n";
     } else {
         std::cout << "Hello " << name << "!\n";
     }
 }
 
-constexpr named_args::function<test_impl, name_t, age_t> test{};
+constexpr named_args::function<decltype(&test_impl), &test_impl, name_t, age_t> test{};
 ```
 
-The file `test.cpp` contains a second slightly larger example that demonstrates
-defaulted arguments.
+The file `test.cpp` contains a second slightly larger example.
