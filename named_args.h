@@ -165,7 +165,53 @@ namespace named_args {
             constexpr static bool empty = std::is_same_v<type, tuple<>>;
         };
 
-        // TODO: select rework
+        // get the value of the arg with kind K from args A or rest R
+        template <typename K, typename A, typename R,
+            bool = tuple_traits::contains_v<arg_kinds_t<A>, K>
+        >
+        struct select_single;
+
+        template <typename K, typename A, typename R>
+        using select_single_t = type_t<select_single<K, A, R>>;
+
+        template <typename K, typename A, typename R>
+        struct select_single<K, A, R, true> {
+            using arg_kinds = arg_kinds_t<A>;
+            constexpr static size_t arg_index = tuple_traits::index_v<arg_kinds, K>;
+
+            using type = tuple_traits::nth_t<A, arg_index>;
+
+            using rest_values = tuple_traits::value_types_t<R>;
+            constexpr static type select(A& a, [[maybe_unused]] rest_values& r) {
+                return std::move(std::get<arg_index>(a));
+            }
+        };
+
+        template <typename K, typename A, typename R>
+        struct select_single<K, A, R, false> {
+            constexpr static size_t arg_index = tuple_traits::index_v<R, K>;
+
+            using type = arg<value_t<K>, K>;
+
+            using rest_values = tuple_traits::value_types_t<R>;
+            constexpr static type select([[maybe_unused]] A& a, rest_values& r) {
+                return {std::get<arg_index>(r)};
+            }
+        };
+
+        // get the type the named argument function implementation returns
+        template <auto impl, typename K, typename A>
+        struct impl_return;
+
+        template <auto impl, typename K, typename A>
+        using impl_return_t = type_t<impl_return<impl, K, A>>;
+
+        template <auto impl, typename A, typename... Ks>
+        struct impl_return<impl, tuple<Ks...>, A> {
+            using R = missing_non_req_args_t<tuple<Ks...>, A>;
+
+            using type = decltype(impl(std::declval<value_t<select_single_t<Ks, A, R>>&&>()...));
+        };
     }
 
     // error reporting type
@@ -187,32 +233,39 @@ namespace named_args {
                 detail::invalid_args<K, A>::empty;
             constexpr static named_args::error<missing_req_args, duplicate_args, invalid_args, valid> error{};
         };
+
+        template <auto impl, typename K, typename A, bool = check_args<K, A>::valid>
+        struct impl_return_check;
+
+        template <auto impl, typename K, typename A>
+        using impl_return_check_t = type_t<impl_return_check<impl, K, A>>;
+
+        template <auto impl, typename K, typename A>
+        struct impl_return_check<impl, K, A, true> {
+            using type = impl_return_t<impl, K, A>;
+        };
+
+        template <auto impl, typename K, typename A>
+        struct impl_return_check<impl, K, A, false> {};
     }
 
+    // named argument function type
     template <auto impl, typename... Ks>
     struct function {
     private:
-        template <typename K, typename Rest, typename... Args>
-        static constexpr decltype(auto) select(std::tuple<Args&&...>& args, Rest& rest) {
-            using arg_kinds = detail::arg_kinds_t<std::tuple<Args...>>;
-            using rest_kinds = detail::arg_kinds_t<std::remove_const_t<Rest>>;
-
-            if constexpr (tuple_traits::contains_v<arg_kinds, K>) {
-                return std::get<tuple_traits::index_v<arg_kinds, K>>(args);
-            } else {
-                return std::get<tuple_traits::index_v<rest_kinds, K>>(rest);
-            }
-        }
+        using kinds_t = std::tuple<Ks...>;
 
     public:
         template <typename... Args>
-        constexpr decltype(auto) operator()(Args&&... a) const {
-            [[maybe_unused]] detail::check_args<std::tuple<Ks...>, std::tuple<std::remove_reference_t<Args>...>> check;
-            using rest_args = detail::missing_non_req_args_t<std::tuple<Ks...>, std::tuple<std::remove_reference_t<Args>...>>;
+        constexpr detail::impl_return_check_t<impl, kinds_t, std::tuple<Args...>> operator()(Args&&... a) const {
+            using args_t = std::tuple<Args...>;
+            using rest_kinds_t = detail::missing_non_req_args_t<kinds_t, args_t>;
+            using rest_values_t = tuple_traits::value_types_t<rest_kinds_t>;
 
-            std::tuple<Args&&...> args = std::forward_as_tuple(std::forward<Args>(a)...);
-            detail::kind_types_t<rest_args> rest = detail::kind_values_v<rest_args>;
-            return impl(std::forward<decltype(select<Ks>(args, rest).value)>(select<Ks>(args, rest).value)...);
+            args_t args = std::forward_as_tuple(std::forward<Args>(a)...);
+            rest_values_t rest = tuple_traits::values_v<rest_kinds_t>;
+
+            return impl(std::forward<detail::value_t<detail::select_single_t<Ks, args_t, rest_kinds_t>>>(detail::select_single<Ks, args_t, rest_kinds_t>::select(args, rest).value)...);
         }
     };
 }
