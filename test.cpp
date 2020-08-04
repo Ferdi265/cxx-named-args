@@ -3,8 +3,6 @@
 #include <functional>
 #include "named_args.h"
 
-using namespace std::literals;
-
 // define argument types
 struct name_t : named_args::req_arg {};
 struct age_t : named_args::def_arg<int, -1>  {};
@@ -49,7 +47,7 @@ int main() {
     test(name = "foo", age = 42, bufsiz = 8192);
     test(bufsiz = 8192, name = "foo", age = 42);
     test(name = "bar", age = 1337);
-    test(name = "baz"s, nice = &n);
+    test(name = std::string("baz"), nice = &n);
 
     std::cout << "nice! " << n << "\n";
 }

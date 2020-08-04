@@ -1,6 +1,6 @@
 # `named-args`
 
-A proof of concept implementation of named function arguments for C++14.
+A proof of concept implementation of named function arguments for C++11.
 
 ## Features
 
@@ -20,12 +20,6 @@ A proof of concept implementation of named function arguments for C++14.
   resolution error messages from inside the implementation.
 
 ## Required Standard Version
-
-Most of the code in this library could also be used with lower C++ standard
-versions, under the following conditions:
-
-- for C++11 support, remove `constexpr` from functions and inline
-  all variable templates
 
 The original version of this library was written for C++17.
 

@@ -76,11 +76,11 @@ namespace named_args {
 
         template <typename A, typename K, typename... Ks>
         struct missing_req_args<tuple<K, Ks...>, A> {
-            using type = std::conditional_t<
-                !K::required || tuple_traits::contains_v<arg_kinds_t<A>, K>,
+            using type = type_t<std::conditional<
+                !K::required || tuple_traits::contains<arg_kinds_t<A>, K>::value,
                 missing_req_args_t<tuple<Ks...>, A>,
                 tuple_traits::prepend_t<missing_req_args_t<tuple<Ks...>, A>, K>
-            >;
+            >>;
             constexpr static bool empty = std::is_same<type, tuple<>>::value;
         };
 
@@ -99,11 +99,11 @@ namespace named_args {
 
         template <typename A, typename K, typename... Ks>
         struct missing_non_req_args<tuple<K, Ks...>, A> {
-            using type = std::conditional_t<
-                K::required || tuple_traits::contains_v<arg_kinds_t<A>, K>,
+            using type = type_t<std::conditional<
+                K::required || tuple_traits::contains<arg_kinds_t<A>, K>::value,
                 missing_non_req_args_t<tuple<Ks...>, A>,
                 tuple_traits::prepend_t<missing_non_req_args_t<tuple<Ks...>, A>, K>
-            >;
+            >>;
             constexpr static bool empty = std::is_same<type, tuple<>>::value;
         };
 
@@ -122,11 +122,11 @@ namespace named_args {
 
         template <typename A, typename K, typename... Ks>
         struct duplicate_args<tuple<K, Ks...>, A> {
-            using type = std::conditional_t<
-                tuple_traits::count_v<arg_kinds_t<A>, K> <= 1,
+            using type = type_t<std::conditional<
+                tuple_traits::count<arg_kinds_t<A>, K>::value <= 1,
                 duplicate_args_t<tuple<Ks...>, A>,
                 tuple_traits::prepend_t<duplicate_args_t<tuple<Ks...>, A>, K>
-            >;
+            >>;
             constexpr static bool empty = std::is_same<type, tuple<>>::value;
         };
 
@@ -145,17 +145,17 @@ namespace named_args {
 
         template <typename K, typename A, typename... As>
         struct invalid_args<K, tuple<A, As...>> {
-            using type = std::conditional_t<
-                tuple_traits::contains_v<K, arg_kind_t<A>>,
+            using type = type_t<std::conditional<
+                tuple_traits::contains<K, arg_kind_t<A>>::value,
                 invalid_args_t<K, tuple<As...>>,
                 tuple_traits::prepend_t<invalid_args_t<K, tuple<As...>>, A>
-            >;
+            >>;
             constexpr static bool empty = std::is_same<type, tuple<>>::value;
         };
 
         // get the value of the arg with kind K from args A or rest R
         template <typename K, typename A, typename R,
-            bool = tuple_traits::contains_v<arg_kinds_t<A>, K>
+            bool = tuple_traits::contains<arg_kinds_t<A>, K>::value
         >
         struct select_single;
 
@@ -164,7 +164,7 @@ namespace named_args {
 
         template <typename K, typename A, typename R>
         struct select_single<K, A, R, true> {
-            constexpr static size_t arg_index = tuple_traits::index_v<arg_kinds_t<A>, K>;
+            constexpr static size_t arg_index = tuple_traits::index<arg_kinds_t<A>, K>::value;
 
             using type = tuple_traits::nth_t<A, arg_index>;
 
@@ -176,7 +176,7 @@ namespace named_args {
 
         template <typename K, typename A, typename R>
         struct select_single<K, A, R, false> {
-            constexpr static size_t arg_index = tuple_traits::index_v<R, K>;
+            constexpr static size_t arg_index = tuple_traits::index<R, K>::value;
 
             using type = arg<value_t<K>, K>;
 
@@ -243,13 +243,13 @@ namespace named_args {
     public:
         template <typename... Args>
         [[gnu::always_inline]]
-        constexpr detail::impl_return_check_t<I, impl, kinds_t, std::tuple<Args...>> operator()(Args&&... a) const {
+        detail::impl_return_check_t<I, impl, kinds_t, std::tuple<Args...>> operator()(Args&&... a) const {
             using args_t = std::tuple<Args...>;
             using rest_kinds_t = detail::missing_non_req_args_t<kinds_t, args_t>;
             using rest_values_t = tuple_traits::value_types_t<rest_kinds_t>;
 
             args_t args = std::forward_as_tuple(std::forward<Args>(a)...);
-            rest_values_t rest = tuple_traits::values_v<rest_kinds_t>;
+            rest_values_t rest = tuple_traits::values<rest_kinds_t>::value;
 
             return impl(std::forward<detail::value_t<detail::select_single_t<Ks, args_t, rest_kinds_t>>>(detail::select_single<Ks, args_t, rest_kinds_t>::select(args, rest).value)...);
         }
