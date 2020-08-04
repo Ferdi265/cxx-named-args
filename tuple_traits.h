@@ -15,18 +15,6 @@ namespace tuple_traits {
     template <typename T>
     using value_t = decltype(T::value);
 
-    // append a type U to a tuple T
-    template <typename T, typename U>
-    struct append;
-
-    template <typename T, typename U>
-    using append_t = type_t<append<T, U>>;
-
-    template <typename U, typename... Ts>
-    struct append<tuple<Ts...>, U> {
-        using type = tuple<Ts..., U>;
-    };
-
     // prepend a type U to a tuple T
     template <typename T, typename U>
     struct prepend;
