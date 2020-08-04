@@ -21,7 +21,8 @@ A proof of concept implementation of named function arguments for C++11.
 
 ## Required Standard Version
 
-The original version of this library was written for C++17.
+The original version of this library was written for C++17 (see branch
+`master`).
 
 ## How to use
 
