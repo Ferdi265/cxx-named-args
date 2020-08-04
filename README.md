@@ -22,12 +22,14 @@ A proof of concept implementation of named function arguments for C++14.
 ## Required Standard Version
 
 Most of the code in this library could also be used with lower C++ standard
-versions, under the following conditions:
+versions:
 
-- for C++11 support, remove `constexpr` from functions and inline
-  all variable templates
+- for C++11 support, remove `constexpr` from the `function` type's call operator
+  and inline all variable templates
+  - the branch `cxx11` contains a version of this library with this change
 
-The original version of this library was written for C++17.
+The original version of this library was written for C++17 (see branch
+`master`).
 
 ## How to use
 
