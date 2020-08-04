@@ -19,6 +19,16 @@ A proof of concept implementation of named function arguments for C++17.
 - Failed conversions (e.g. wrong argument type) will result in overload
   resolution error messages from inside the implementation.
 
+## Required Standard Version
+
+Most of the code in this library could also be used with lower C++ standard
+versions, under the following conditions:
+
+- for C++14 support, `opt_arg` must be removed (or changed to use a
+  C++14-compatible implementation of `std::optional`)
+- for C++11 support, remove `constexpr` from functions and inline
+  all variable templates
+
 ## How to use
 
 A function with named arguments can be called by calling the named argument
