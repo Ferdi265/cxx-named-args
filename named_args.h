@@ -234,6 +234,7 @@ namespace named_args {
             constexpr static named_args::error<missing_req_args, duplicate_args, invalid_args, valid> error{};
         };
 
+        // check args and then call impl_return
         template <auto impl, typename K, typename A, bool = check_args<K, A>::valid>
         struct impl_return_check;
 
