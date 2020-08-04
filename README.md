@@ -25,8 +25,9 @@ Most of the code in this library could also be used with lower C++ standard
 versions:
 
 - for C++14 support, `opt_arg` must be removed (or changed to use a
-  C++14-compatible implementation of `std::optional`)
-  - the branch `cxx14` contains a version of this library with `opt_arg` removed
+  C++14-compatible implementation of `std::optional`) and `auto` non-type
+  template parameters need an additional template parameter for their type
+  - the branch `cxx14` contains a version of this library with this change
 - for C++11 support, remove `constexpr` from the `function` type's call operator
   and inline all variable templates
   - the branch `cxx11` contains a version of this library with this change
